@@ -812,6 +812,36 @@ def index(page):
     return render_books_list("newest", sort_param, 1, page)
 
 
+@web.route("/set_language/<lang_code>")
+@login_required_if_no_ano
+def set_language(lang_code):
+    log.info(f"Setting language to: {lang_code}")
+    
+    # Only allow valid language codes
+    if lang_code in ["en", "ja"]:
+        if current_user.is_authenticated and current_user.name != 'Guest':
+            log.info(f"Authenticated user: {current_user.name}, setting locale")
+            current_user.locale = lang_code
+            try:
+                ub.session.commit()
+                log.info("Database updated with new locale")
+            except Exception as e:
+                log.error(f"Error saving locale to DB: {str(e)}")
+                flash(str(e), category="error")
+        else:
+            # For anonymous users, store language in session
+            log.info("Anonymous user, setting locale in session")
+            flask_session['locale'] = lang_code
+            log.info(f"Session updated: {flask_session.get('locale')}")
+    else:
+        log.warning(f"Invalid language code attempted: {lang_code}")
+    
+    # Redirect back to the previous page or home page
+    next_url = request.referrer or url_for('web.index')
+    log.info(f"Redirecting to: {next_url}")
+    return redirect(next_url)
+
+
 @web.route('/<data>/<sort_param>', defaults={'page': 1, 'book_id': 1})
 @web.route('/<data>/<sort_param>/', defaults={'page': 1, 'book_id': 1})
 @web.route('/<data>/<sort_param>/<book_id>', defaults={'page': 1})

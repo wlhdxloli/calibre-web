@@ -109,9 +109,18 @@ def get_sidebar_config(kwargs=None):
 # Returns the template for rendering and includes the instance name
 def render_title_template(*args, **kwargs):
     sidebar, simple = get_sidebar_config(kwargs)
+    
+    # Add language information for the template
+    from flask import url_for
+    lang_buttons = [
+        {"code": "en", "name": "English", "url": url_for('web.set_language', lang_code='en')},
+        {"code": "ja", "name": "日本語", "url": url_for('web.set_language', lang_code='ja')}
+    ]
+    
     try:
         return render_template(instance=config.config_calibre_web_title, sidebar=sidebar, simple=simple,
                                accept=config.config_upload_formats.split(','),
+                               lang_buttons=lang_buttons,
                                *args, **kwargs)
     except PermissionError:
         log.error("No permission to access {} file.".format(args[0]))

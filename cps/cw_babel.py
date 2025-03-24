@@ -17,6 +17,11 @@ def get_locale():
         # if the account is the guest account bypass the config lang settings
         if current_user.name != 'Guest':
             return current_user.locale
+    
+    # Check if language is set in the session (for anonymous users)
+    from flask import session
+    if 'locale' in session:
+        return session['locale']
 
     preferred = list()
     if request.accept_languages:
